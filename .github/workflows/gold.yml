@@ -38,8 +38,3 @@ jobs:
             git commit -m "state update [skip ci]"
             git push
           fi
-
-      # 手动触发时发送测试推送，验证微信能收到；定时调度不会执行这步
-      - name: Push test on manual trigger
-        if: github.event_name == 'workflow_dispatch'
-        run: python monitor.py --push-test
