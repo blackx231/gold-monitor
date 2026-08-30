@@ -83,17 +83,20 @@ def in_session(now=None):
 
 
 def min_interval(price, st):
-    """距离自适应采样：按价格到下一阈值的'振幅日距离'定档（秒）"""
-    if st["a1_latched"] or price is None or price < CONFIG["threshold_warn"]:
-        # S1/S2：已进入警戒区
-        if price is not None and price <= CONFIG["threshold_near"]:
-            return 900          # S2 高频：15 分钟
-        return 3600             # S1 中频：1 小时
-    if price >= 910:
-        return 86400            # S0 远离：1 次/日
-    if price >= 895:
-        return 43200            # S0 邻近：2 次/日
-    return 28800                # S0 贴线：3 次/日
+    """距离自适应采样（2026-08-30 调整为三档，秒）：
+    ≥950     每 2 日 1 次（远离目标，最省算力）
+    900-950  跌破 950：1 次/日
+    870-900  跌破 900：2 次/日
+    ≤870     接近 860：1 次/小时"""
+    if price is None:
+        return 86400
+    if price >= 950:
+        return 172800       # 远离：每 2 日 1 次
+    if price >= 900:
+        return 86400        # 跌破 950：1 次/日
+    if price > 870:
+        return 43200        # 跌破 900：2 次/日
+    return 3600             # 接近 860（≤870）：1 次/小时
 
 
 def _is_price(s):
