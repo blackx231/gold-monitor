@@ -1,0 +1,41 @@
+name: gold-monitor
+
+on:
+  schedule:
+    # 每 15 分钟一次（错开整点，避开 GitHub 高峰延迟）
+    - cron: "3,18,33,48 * * * *"
+  workflow_dispatch: {}   # 允许在 GitHub 网页手动触发测试
+
+permissions:
+  contents: write          # 允许把 state.json 写回仓库，跨次运行保持监控状态
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TZ: Asia/Shanghai    # 关键：GitHub 服务器默认 UTC，必须改为北京时间，
+      SENDKEY: ${{ secrets.SENDKEY }}  # 否则交易日/夜盘时段判断会错 8 小时
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install requests
+
+      - name: Run monitor
+        run: python monitor.py
+
+      - name: Save state back to repo
+        run: |
+          git config user.name "gold-monitor-bot"
+          git config user.email "actions@github.com"
+          git add state.json monitor.log || true
+          if git diff --cached --quiet; then
+            echo "state unchanged, skip commit"
+          else
+            git commit -m "state update [skip ci]"
+            git push
+          fi
