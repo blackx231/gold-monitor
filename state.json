@@ -1,7 +1,7 @@
 {
-  "last_check_ts": 1793760300.120694,
-  "last_price": 846.59,
+  "last_check_ts": 1793814868.125446,
+  "last_price": 874.04,
   "a1_latched": true,
-  "a2_latched": true,
-  "a3_latched": true
+  "a2_latched": false,
+  "a3_latched": false
 }
